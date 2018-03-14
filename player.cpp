@@ -4,14 +4,15 @@
 
 static class Player : public Actor{
     Inventory inventory;
-public:
 
-    Player() : Actor("Player", 0, 0){
-        inventory(10);
+public:
+    int z = 0;
+    Player() : Actor("Player", 0, 0), inventory(10){
+
 
     }
 
-    Inventory * getInventoryRef(){
+    Inventory * getInventory(){
         return &inventory;
     }
 };
