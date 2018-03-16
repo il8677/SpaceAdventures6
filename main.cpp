@@ -6,12 +6,12 @@ using namespace std;
 
 Player player();
 
-Map planets[5] = {
-    Map(20,20),
-    Map(20,20),
-    Map(20,20),
-    Map(20,20),
-    Map(20,20),
+Map<> planets[5] = {
+    Map<>(20,20,NULLTILE),
+    Map<>(20,20,NULLTILE),
+    Map<>(20,20,NULLTILE),
+    Map<>(20,20,NULLTILE),
+    Map<>(20,20,NULLTILE),
 };
 
 int main(){
@@ -19,6 +19,7 @@ int main(){
     
     for(int i = 0; i < 5; i++){
         planets[5].~Map();
+        planets[i].~Map();
     }
     return 0;
 }

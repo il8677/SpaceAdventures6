@@ -49,18 +49,18 @@ public:
 };
 
 Tile tileTemplates[4];
-
+Tile NULLTILE("  ", GREY, 0, "NULL");
 void initializeTileTemplates(){
     tileTemplates[0] = Tile("||", GREEN, 25, "Your surroundings are thick with trees");
     tileTemplates[1] = Tile("__", LIGHTGREEN, 1, "Your surroundings are flat");
     tileTemplates[2] = Tile("^^", GREY, 5, "Your surroundings are rocky and mountainous");
     tileTemplates[3] = Tile("..", YELLOW, 0, "Your surroundings are sandy");
 }
-
+template <typename T = Tile>
 class Map{
     int sizex;
     int sizey;
-    Tile ** tiles;
+    T ** tiles;
 public:
     int getx(){
         return sizex;
@@ -70,20 +70,55 @@ public:
         return sizey;
     }
 
-    void setTileAtPoint(int x, int y, Tile tile){
+    void setTile(int x, int y, T tile){
         tiles[x][y] = tile;
     }
 
-    Tile * getTileAtPoint(int x, int y){
+    T * getTileLeft(int x, int y){
+        if(x - 1 == -1){
+            return &tiles[sizex][y];
+        }
+        return &tiles[x-1][y];
+    }
+
+    T * getTileRight(int x, int y){
+        if(x+1 == sizex){
+            return &tiles[0][y];
+        }
+
+        return &tiles[x+1][y];
+    }
+
+    T * getTileUp(int x, int y){
+        if(y-1 == -1){
+            return &tiles[x][sizey];
+        }
+        return &tiles[x][y-1];
+    }
+
+    T * getTileDown(int x, int y){
+        if(y+1 == sizey){
+            return &tiles[x][0];
+        }
+        return &tiles[x][y+1];
+    }
+
+    T * getTile(int x, int y){
         return &tiles[x][y];
     }
 
-    Map(int x, int y){
+    Map(int x, int y, T defaultTile){
         sizex=x; sizey=y;
 
-        tiles = new Tile*[sizex];
+        tiles = new T*[sizex];
         for(int i = 0; i < sizex; i++){
-            tiles[i] = new Tile[sizey];
+            tiles[i] = new T[sizey];
+        }
+
+        for(int y = 0; y < sizey; y++){
+            for(int x = 0; x< sizex; x++){
+                setTile(x,y, defaultTile);
+            }
         }
     }
     ~Map(){
