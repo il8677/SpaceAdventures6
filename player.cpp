@@ -9,7 +9,6 @@ public:
     int z = 0;
     Player() : Actor("Player", 0, 0), inventory(10){
 
-
     }
 
     Inventory * getInventory(){
