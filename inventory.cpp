@@ -2,7 +2,7 @@
 #include<vector>
 #include<iostream>
 using namespace std;
-
+Item fist("Fist", NOTHING, 0, 1,0);
 class Inventory{
     std::vector<Item *> items;
     std::vector<int> quant;
@@ -97,6 +97,59 @@ public:
 
     void clearItem(int i){
         removeItem(i);
+    }
+
+    Item * getBestPickaxe(){
+        int itemIndex = NULL;
+        for(int i = 0; i < items.size();i++){
+            if(itemIndex == NULL){
+                if(items[i]->miningLevel > NOTHING){
+                    itemIndex = i;
+                }
+            }else if(items[i]->miningLevel > items[itemIndex]->miningLevel){
+                itemIndex = i;
+            }else if(items[i]->miningLevel == items[itemIndex]->miningLevel && items[i]->miningSpeed > items[itemIndex]->miningSpeed){
+                itemIndex = i;
+            }
+        }
+        if(itemIndex==NULL){
+            return &fist;
+        }else{
+            return items[itemIndex];        }
+    }
+
+    Item* getBestAxe(){
+        int itemIndex = NULL;
+        for(int i = 0; i < items.size();i++){
+            if(itemIndex == NULL){
+                if(items[i]->woodSpeed > 0){
+                    itemIndex = i;
+                }
+            }else if(items[i]->woodSpeed > items[itemIndex]->woodSpeed){
+                itemIndex = i;
+            }
+        }
+        if(itemIndex==NULL){
+            return &fist;
+        }else{
+            return items[itemIndex];        }
+    }
+
+    Item* getBestWeapon(){
+        int itemIndex = NULL;
+        for(int i = 0; i < items.size();i++){
+            if(itemIndex == NULL){
+                if(items[i]->ad > 0){
+                    itemIndex = i;
+                }
+            }else if(items[i]->ad > items[itemIndex]->ad){
+                itemIndex = i;
+            }
+        }
+        if(itemIndex==NULL){
+            return &fist;
+        }else{
+            return items[itemIndex];        }
     }
 
     Item * getItem(int i){

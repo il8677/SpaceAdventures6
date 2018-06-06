@@ -6,7 +6,7 @@ public:
     int x;
     int y;
     int health;
-
+    
     void die(){
 
     }
@@ -41,7 +41,7 @@ public:
             x=xmax;
         }
     }
-    Actor(string n, int xx = 0, int yy = 0){
+    Actor(string n, int xx = 0, int yy = 0, string label = "M"){
         name = n;
         x = xx;
         y = yy;

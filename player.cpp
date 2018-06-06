@@ -7,7 +7,7 @@ static class Player : public Actor{
 
 public:
     int z = 0;
-    Player() : Actor("Player", 0, 0), inventory(10){
+    Player() : Actor("Player", 0, 0, "PP"), inventory(10){
 
     }
 
