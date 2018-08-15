@@ -104,6 +104,19 @@ public:
         return &tiles[x][y+1];
     }
     //---
+
+    T * setTileDirection(int x, int y, T value, Direction d){
+        if(d == LEFT){
+            setTileLeft(x,y,value);
+        }else if(d == RIGHT){
+            setTileRight(x,y,value);
+        }else if(d == UP){
+            setTileUp(x,y,value);
+        }else if(d == DOWN){
+            setTileDown(x,y,value);
+        }
+    }
+
     T * setTileLeft(int x, int y, T value){
         x-=1;
         if(x == -1){

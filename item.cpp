@@ -7,7 +7,7 @@ typedef enum MiningLevel{NOTHING,STONE,IRON, GOLD,ARKHIDITE};
 
 class Item{
 public:
-
+    bool isTool = false;
     string name;
 
     MiningLevel miningLevel;
@@ -15,6 +15,7 @@ public:
     int miningSpeed = 0;
     int ad = 0;
     int woodSpeed = 0;
+    int durability;
 
     Item(string n){
         name = n;
@@ -25,19 +26,28 @@ public:
         ad = i.ad;
         woodSpeed = i.woodSpeed;
         miningLevel = i.miningLevel;
+        isTool = i.isTool;
     }
-    Item(string n, MiningLevel ml, int ms,int a,int ws){
+    Item(string n, MiningLevel ml, int ms,int a, int d){
         name = n;
         miningSpeed=ms;
         ad=a;
-        woodSpeed=ws;
         miningLevel=ml;
+        durability = d;
+        bool isTool = true;
     }
 
-    Item(string n, int a, int ws){
+    Item(string n, int a, int ws, int d){
         name = n;
         ad=a;
         woodSpeed=ws;
+        durability = d;
+        bool isTool = true;
+    }
+
+    Item(string n, int a){
+        name = n;
+        ad=a;
     }
 
     string getName(){

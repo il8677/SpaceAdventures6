@@ -1,12 +1,16 @@
 #include<iostream>
 
+typedef enum Direction {UP, RIGHT, DOWN, LEFT};
+
 class Actor{
 public:
     string name;
     int x;
     int y;
     int health;
-    
+
+    Direction d;
+
     void die(){
 
     }
@@ -41,9 +45,8 @@ public:
             x=xmax;
         }
     }
-    Actor(string n, int xx = 0, int yy = 0, string label = "M"){
+    Actor(string n){
         name = n;
-        x = xx;
-        y = yy;
+
     }
 };

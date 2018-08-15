@@ -3,14 +3,14 @@
 
 class Recipe{
     Item* product;
-    vector<Item> ingridients;
+    vector<Item*> ingredients;
     vector<int> quantities;
 
 public:
 
-    Recipe(Item* p, vector<Item> i, vector<int> q){
+    Recipe(Item* p, vector<Item*> i, vector<int> q){
         product = p;
-        ingridients=i;
+        ingredients=i;
         quantities=q;
     }
 };

@@ -1,28 +1,32 @@
 #include "item.cpp"
+#include "Utility.cpp"
 #include<vector>
 #include<iostream>
+#include <iomanip>      // std::setw
+
 using namespace std;
 Item fist("Fist", NOTHING, 0, 1,0);
+Item nullitem("",NOTHING, 0, 0, 0);
 class Inventory{
     std::vector<Item *> items;
     std::vector<int> quant;
     void removeItem(int i){
-        items[i]=NULL;
+        items[i]=&nullitem;
         quant[i]=NULL;
     }
     void removeItem(int i, int q){
         quant[i]-=q;
         if(quant[i] == 0){
-            items[i]=NULL;
+            items[i]=&nullitem;
         }
     }
     int nextEmpty(){
         for (int i = 0; i < items.size(); i++){
-            if(items[i] == NULL){
+            if(items[i] == &nullitem){
                 return i;
             }
         }
-        return NULL;
+        return 10000;
     }
     int getIndexOfItem(string name){
         int index=NULL;
@@ -40,7 +44,7 @@ class Inventory{
 public:
     Inventory(int invsize){
         for(int i = 0; i < invsize; i++){
-            items.push_back(NULL);
+            items.push_back(&nullitem);
             quant.push_back(NULL);
         }
         cout << invsize << " " << quant.size() << endl;
@@ -78,21 +82,27 @@ public:
         return returnItem;
     }
 
-    Item * addItem(Item* item, int q){
+    void addItem(Item* item, int q){
 
-        int itemIndex = NULL;
+        int itemIndex = 10000;
         for(int i = 0; i < items.size(); i++){
             if(items[i]->getName() == item->getName()){
                 itemIndex = i;
             }
         }
-        if(itemIndex != NULL){
+        if(itemIndex != 10000){
             quant[itemIndex]+=q;
-        }else if(nextEmpty() != NULL){
+        }else if(nextEmpty() != 10000){
             items[nextEmpty()] = item;
+            quant[nextEmpty()] = q;
         }else{
             cout << "Inventory is full!" << endl;
+            goto end;
         }
+
+        cout << "Added " << q << " " << item->name << " to inventory"<<endl;
+        end:
+        ;
     }
 
     void clearItem(int i){
@@ -171,5 +181,17 @@ public:
 
         other->addItem(iitem, iq);
         addItem(oitem, oq);
+    }
+
+    void printInventory(){
+        for(int i = 0; i < items.size();i++){
+            if(items[i]->isTool){
+                cout <<setw(2) << i+1 << "->"<<setw(10)<< items[i]->name<<setw(5) <<items[i]->durability<<endl;
+            }else{
+                cout <<setw(2) << i+1 << "->"<<setw(10)<< items[i]->name<<setw(5) <<"x"<<quant[i]<<endl;
+            }
+            sleep(500);
+        }
+
     }
 };
