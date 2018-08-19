@@ -20,6 +20,10 @@ public:
     Item(string n){
         name = n;
     }
+    Item(string n, MiningLevel ml){
+        name = n;
+        miningLevel=ml;
+    }
     Item (Item& i){
         name = i.name;
         miningSpeed = i.miningSpeed;

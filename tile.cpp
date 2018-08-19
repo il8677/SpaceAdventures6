@@ -103,6 +103,17 @@ public:
         }
         return &tiles[x][y+1];
     }
+    T * getTileDirection(int x, int y,Direction d){
+        if(d == LEFT){
+            return getTileLeft(x,y);
+        }else if(d == RIGHT){
+            return getTileRight(x,y);
+        }else if(d == UP){
+            return getTileUp(x,y);
+        }else{
+            return getTileDown(x,y);
+        }
+    }
     //---
 
     T * setTileDirection(int x, int y, T value, Direction d){

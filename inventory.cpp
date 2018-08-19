@@ -1,3 +1,4 @@
+#pragma once
 #include "item.cpp"
 #include "Utility.cpp"
 #include<vector>
@@ -29,19 +30,57 @@ class Inventory{
         return 10000;
     }
     int getIndexOfItem(string name){
-        int index=NULL;
+        int index=10000;
         for(int i = 0; i < items.size(); i++){
             if(name== items[i]->getName()){
                 index = i;
             }
         }
-        if(index == NULL){
+        if(index == 10000){
             cout << "[Inventory : getIndexOfItem()] ERROR: item name does not exist in inventory!"<<endl;
             exit(0);
         }
         return index;
     }
 public:
+    bool hasItem(Item* c){
+        for(int i = 0; i < items.size(); i++){
+            if(c == items[i]){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool hasEnoughItem(Item* c, int q){
+        for(int i = 0; i < items.size(); i++){
+            if(c->name==items[i]->name && quant[i] >= q){
+                return true;
+            }
+
+        }
+        return false;
+    }
+
+    bool hasItems(vector<Item*> c){
+
+        for(int i = 0; i < c.size(); i++){
+            if(hasItem(c[i]) == false){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool hasEnoughItems(vector<Item*> c, vector<int> q){
+        for(int i = 0; i < c.size(); i++){
+            if(!hasEnoughItem(c[i],q[i])){
+                return false;
+            }
+        }
+        return true;
+    }
+
     Inventory(int invsize){
         for(int i = 0; i < invsize; i++){
             items.push_back(&nullitem);
@@ -87,14 +126,16 @@ public:
         int itemIndex = 10000;
         for(int i = 0; i < items.size(); i++){
             if(items[i]->getName() == item->getName()){
+
                 itemIndex = i;
             }
         }
         if(itemIndex != 10000){
             quant[itemIndex]+=q;
         }else if(nextEmpty() != 10000){
-            items[nextEmpty()] = item;
-            quant[nextEmpty()] = q;
+            int aaaa = nextEmpty();
+            items[aaaa] = item;
+            quant[aaaa] = q;
         }else{
             cout << "Inventory is full!" << endl;
             goto end;
@@ -186,9 +227,9 @@ public:
     void printInventory(){
         for(int i = 0; i < items.size();i++){
             if(items[i]->isTool){
-                cout <<setw(2) << i+1 << "->"<<setw(10)<< items[i]->name<<setw(5) <<items[i]->durability<<endl;
+                cout <<setw(2) << i+1 << "->"<<setw(15)<< items[i]->name<<setw(5) <<items[i]->durability<<endl;
             }else{
-                cout <<setw(2) << i+1 << "->"<<setw(10)<< items[i]->name<<setw(5) <<"x"<<quant[i]<<endl;
+                cout <<setw(2) << i+1 << "->"<<setw(15)<< items[i]->name<<setw(5) <<"x"<<quant[i]<<endl;
             }
             sleep(500);
         }

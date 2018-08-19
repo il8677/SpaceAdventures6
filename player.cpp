@@ -10,6 +10,8 @@ public:
     Player() : Actor("Player"), inventory(10){
         x = 0;
         y = 0;
+        maxhealth=25;
+        health=maxhealth;
     }
 
     Inventory * getInventory(){
