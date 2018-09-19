@@ -1,6 +1,9 @@
 #include "item.cpp"
 #include "inventory.cpp"
+#include "player.cpp"
 #include <vector>
+
+class Player;
 
 class Recipe{
 
@@ -22,5 +25,9 @@ public:
         product = p;
         ingredients=i;
         quantities=q;
+    }
+
+    void addProduct(Player& c){
+        c.getInventory()->addItem(product, 1);
     }
 };

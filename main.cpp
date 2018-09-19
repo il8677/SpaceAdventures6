@@ -48,7 +48,7 @@ Item a_pickaxeMiner("Miners Pickaxe", ARKHIDITE, 10, 4, 9999);
 
 //Item* p, vector<Item> i, vector<int> q
 #define RECIPECOUNT 9
-Recipe recipes[RECIPECOUNT] = {
+vector<Recipe> recipes = {
     Recipe(&axeWood, initializer_list<Item*>{&wood}, initializer_list<int>{10}),
     Recipe(&axeStone,initializer_list<Item*>{&wood,&stone}, initializer_list<int>{5,10}),
     Recipe(&axeIron,initializer_list<Item*>{&wood, &iron}, initializer_list<int>{5, 10}),
@@ -158,21 +158,27 @@ unique_ptr<Monster> monsterIndex[MONSTERCOUNT] = {
     make_unique<Monster>("Earth Golem", 10,2, false)
 };
 
-class StateCrafting : public GameState{
+class CraftingMenu : public GameState{
+
+    vector<Recipe>& r;
+public:
+    CraftingMenu(vector<Recipe>& d) : r(d){
+    }
+
     void update() override{
         cls();
         for(int i = 0; i < RECIPECOUNT; i++){
-            if(recipes[i].canCraft(player.getInventory())){
-                cout << i<< ": " << recipes[i].product->name<<endl;
+            if(r[i].canCraft(player.getInventory())){
+                cout << i<< ": " << r[i].product->name<<endl;
                 sleep(100);
             }
         }
         int in;
         cin >> in;
         states.pop();
-        if(recipes[in].canCraft(player.getInventory())){
-            player.getInventory()->addItem(new Item(*recipes[in].product), 1);
-            recipes[in].removeItems(player.getInventory());
+        if(r[in].canCraft(player.getInventory())){
+            r[in].addProduct(player);
+            r[in].removeItems(player.getInventory());
         }
     }
 };
@@ -444,7 +450,7 @@ class StatePlanet : public GameState{
             cout << "Press any key to continue..."<<endl;
             anykey();
         }else if (action == 'q'){
-            states.push(std::make_unique<StateCrafting>());
+            states.push(std::make_unique<CraftingMenu>(recipes));
         }else if(action == 'm'){
             states.push(std::make_unique<StateMine>(ac));
         }
