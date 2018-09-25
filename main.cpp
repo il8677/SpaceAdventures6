@@ -102,21 +102,19 @@ public:
     Monster(Monster &m) : Actor(m.name){
         health = m.health; maxhealth = health;
         label = m.name[0];
+        attack = m.attack;
     }
 
-    void atck(Map<Colour>& colourmap, Map<int>& damagemap){
-        colourmap.setTileDirection(x, y, RED, d);
-        damagemap.setTileDirection(x, y, attack, d);
+    void atck(Map<Colour>* colourmap, Map<int>* damagemap){
+        colourmap->setTileDirection(x, y, RED, d);
+        damagemap->setTileDirection(x, y, attack, d);
     }
 
-    void ai(Map<Colour> colourmap, Map<int> damagemap){
+    void ai(Map<Colour> *colourmap, Map<int>* damagemap){
         //Check if player is in range, then attack
         if((player.x == directionX(x, d) && player.y == y) || (player.y == directionY(y, d) && player.x==x)){
             atck(colourmap, damagemap);
         }else if(getDistance(x, y, player.x, player.y) ==2){
-            if(getDirection(x, y, player.x, player.y) == d){
-                atck(colourmap, damagemap);
-            }else{
                 char action;
                 action = directionKeys[getDirection(x, y, player.x, player.y)];
                 if(action == 'a'){
@@ -128,7 +126,6 @@ public:
                 }else if (action=='s'){
                     d = DOWN;
                 }
-            }
         }else{
             char action;
             action = directionKeys[getDirection(x, y, player.x, player.y)];
@@ -153,9 +150,12 @@ public:
     }
 };
 
-#define MONSTERCOUNT 1
+#define MONSTERCOUNT 4
 unique_ptr<Monster> monsterIndex[MONSTERCOUNT] = {
-    make_unique<Monster>("Earth Golem", 10,2, false)
+    make_unique<Monster>("Earth Golem", 10,2, false),
+    make_unique<Monster>("Wind Golem",5,10,false),
+    make_unique<Monster>("Water Golem", 4,4,false),
+    make_unique<Monster>("Fire Golem", 6,6,false)
 };
 class Building : public Recipe, public GameState{
 public:
@@ -212,8 +212,6 @@ public:
                 sleep(100);
             }
         }
-        cout << "ABCD" << buildingRecipes.size();
-
         int in;
         cin >> in;
         states.pop();
@@ -243,7 +241,7 @@ public:
         player.y = colours.gety() - 1;
 
         for(int i = 0; i < (player.kills + 1) + (floor(player.kills/10)); i++){
-            opponents.push_back(make_unique<Monster>( (*(monsterIndex[rand()%MONSTERCOUNT])) ));
+            opponents.push_back(make_unique<Monster>( (*(monsterIndex[rand()%MONSTERCOUNT]))) );
         }
     }
     void update() override{
@@ -271,7 +269,7 @@ public:
         for(int i = 0; i < opponents.size(); i++){
             cout << opponents[i]->name << ": " << opponents[i].get()->health << "/"<<opponents[i].get()->maxhealth<<endl;
             if(!opponents[i]->tactical){
-                opponents[i]->ai(colours, damages);
+                opponents[i]->ai(&colours, &damages);
             }
         }
 
@@ -297,7 +295,7 @@ public:
         }
         for(int i = 0; i < opponents.size(); i++){
             if(opponents[i]->tactical){
-                opponents[i]->ai(colours, damages);
+                opponents[i]->ai(&colours, &damages);
             }
             //Check for collisions
             if(opponents[i]->x == player.x && opponents[i]->y == player.y){
