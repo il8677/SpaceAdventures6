@@ -7,6 +7,8 @@
 #include<chrono>
 #include<thread>
 #include <stdio.h>
+#include <iomanip>      // std::setw
+
 
 #include "player.cpp"
 #include "tile.cpp"
@@ -24,6 +26,16 @@ Player player;
 
 string directionGlyphs[4] = {"^",">","V","<"};
 char directionKeys[4] = {'w','d','s','a'};
+
+struct Coords{
+    int x;
+    int y;
+    string name;
+
+    Coords(int xx = -1, int yy = -1, string n = ""){
+        x = xx; y = yy; name = n;
+    }
+};
 
 //item definition
 Item iron("Iron", IRON);
@@ -45,6 +57,8 @@ Item pickaxeStone("Stone Pickaxe", IRON, 4, 2, 40);
 Item pickaxeIron("Iron Pickaxe", GOLD, 7, 4, 100);
 
 Item a_pickaxeMiner("Miners Pickaxe", ARKHIDITE, 10, 4, 9999);
+
+Coords* mapmarker = new Coords();
 
 //Item* p, vector<Item> i, vector<int> q
 #define RECIPECOUNT 9
@@ -80,7 +94,9 @@ Map<> planets[5] = {
 void printTilesOfMap(Map<> * themap){
     for(int y = 0; y<themap->getx(); y++){
         for(int x = 0; x<themap->gety(); x++){
-            if(x==player.x && y==player.y){setColor(WHITE); cout << "PP";}else{
+            if(x==player.x && y==player.y){setColor(WHITE); cout << "PP";}else if(mapmarker->x == x && mapmarker->y == y){
+                setColor(RED);
+            }else{
                 setColor(themap->getTile(x,y)->getColour());
                 cout<<themap->getTile(x,y)->getStyle();
             }
@@ -262,8 +278,6 @@ public:
                     colours.setTile(x,y,GREEN);
                 }
             }
-
-
         }
         cout << player.health<<"/"<<player.maxhealth<<endl;
         for(int i = 0; i < opponents.size(); i++){
@@ -359,6 +373,45 @@ private:
     }
 
 };
+vector<Coords> bookmarks;
+class StateBookmarks : public GameState{
+public:
+    void update() override{
+        if(bookmarks.size() != 0){
+            cout << "Current bookmarks\n";
+            for(int i = 0; i > bookmarks.size(); i++){
+                cout << i << " "<< setw(20)<< bookmarks[i].name<<"\t"<<setw(2)<<bookmarks[i].x<<", " <<setw(2)<< bookmarks[i].y<<endl;
+                sleep(100);
+            }
+        }
+        cout << "Input (Numbers to set map marker, n for new bookmark):\n";
+        string input;
+        cin >> input;
+        if(input == "n"){
+            cout << "New bookmark name: ";
+            getline(cin, input);
+            getline(cin, input);
+            int xxx, yyy;
+            cout <<"\nX: ";
+            cin >> xxx;
+            cout<<"\nY: ";
+            cin >> yyy;
+            cout<<endl;
+            bookmarks.push_back(Coords(xxx,yyy,input));
+        }else{
+            try{
+                int i = stoi(input);
+                 if(i < bookmarks.size()){
+                     mapmarker = &bookmarks[i];
+                 }
+            }catch(const std::exception& e){
+
+            }
+        }
+        states.pop();
+    }
+};
+
 class StateMine : public GameState{
     int subactions = 0; // 10 subactions = 1 action
     int& ac;
@@ -508,6 +561,8 @@ class StatePlanet : public GameState{
             states.push(std::make_unique<CraftingMenu>(buildingRecipes));
         }else if(action == 'f'){
             states.push(unique_ptr<GameState>(buildings[Z].getTile(X,Y)));
+        }else if(action == 'u'){
+            states.push(std::make_unique<StateBookmarks>());
         }
         if(ac <= 0){
             ac=10;
