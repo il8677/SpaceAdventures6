@@ -4,7 +4,8 @@
 #include<thread>
 #include<cmath>
 #include<fstream>
-
+#define MAPSIZE 20
+#define d_PRINTDAMAGEMAP true
 typedef enum Direction {UP, RIGHT, DOWN, LEFT};
 
 void debugout(string s){

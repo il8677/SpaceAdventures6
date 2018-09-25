@@ -1,7 +1,7 @@
 #include <iostream>
 #include "rlutil.h"
 #include <random>
-
+#include "Utility.cpp"
 using namespace std;
 using namespace rlutil;
 
@@ -177,6 +177,14 @@ public:
             }
         }
     }
+    Map(int x, int y){
+        sizex=x; sizey=y;
+
+        tiles = new T*[sizex];
+        for(int i = 0; i < sizex; i++){
+            tiles[i] = new T[sizey];
+        }
+    }
     ~Map(){
         for(int i = 0; i < sizex; i++){
             delete[] tiles[i];
@@ -185,7 +193,28 @@ public:
     }
 };
 
+template <typename T = Tile>
+class UniqueMap{
+public:
+    int sizex, sizey;
+    unique_ptr<T> tiles[MAPSIZE][MAPSIZE];
 
+    UniqueMap(int x, int y){
+        sizex=x; sizey=y;
+    }
+    template <typename L>
+    void setTile(int x, int y){
+        tiles[x][y] = make_unique<L>();
+    }
+
+    T * getTile(int x, int y){
+        return tiles[x][y].get();
+    }
+
+    unique_ptr<T> getUniquePointer(int x, int y){
+        return tiles[x][y];
+    }
+};
 
 void generateTerrainOfMap(Map<> * themap){
     srand(time(NULL));

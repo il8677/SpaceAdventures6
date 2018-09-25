@@ -6,6 +6,7 @@
 #include<random>
 #include<chrono>
 #include<thread>
+#include <stdio.h>
 
 #include "player.cpp"
 #include "tile.cpp"
@@ -17,7 +18,6 @@ using namespace std;
 
 Player player;
 
-#define MAPSIZE 20
 #define Z player.z
 #define X player.x
 #define Y player.y
@@ -48,18 +48,18 @@ Item a_pickaxeMiner("Miners Pickaxe", ARKHIDITE, 10, 4, 9999);
 
 //Item* p, vector<Item> i, vector<int> q
 #define RECIPECOUNT 9
-vector<Recipe> recipes = {
-    Recipe(&axeWood, initializer_list<Item*>{&wood}, initializer_list<int>{10}),
-    Recipe(&axeStone,initializer_list<Item*>{&wood,&stone}, initializer_list<int>{5,10}),
-    Recipe(&axeIron,initializer_list<Item*>{&wood, &iron}, initializer_list<int>{5, 10}),
+vector<Recipe*> recipes = {
+    new ItemRecipe(&axeWood, initializer_list<Item*>{&wood}, initializer_list<int>{10}),
+    new ItemRecipe(&axeStone,initializer_list<Item*>{&wood,&stone}, initializer_list<int>{5,10}),
+    new ItemRecipe(&axeIron,initializer_list<Item*>{&wood, &iron}, initializer_list<int>{5, 10}),
 
-    Recipe(&pickaxeWood,initializer_list<Item*>{&wood}, initializer_list<int>{10}),
-    Recipe(&pickaxeStone,initializer_list<Item*>{&wood, &stone}, initializer_list<int>{5, 15}),
-    Recipe(&pickaxeIron,initializer_list<Item*>{&wood, &iron, &stone}, initializer_list<int>{5, 10, 5}),
+    new ItemRecipe(&pickaxeWood,initializer_list<Item*>{&wood}, initializer_list<int>{10}),
+    new ItemRecipe(&pickaxeStone,initializer_list<Item*>{&wood, &stone}, initializer_list<int>{5, 15}),
+    new ItemRecipe(&pickaxeIron,initializer_list<Item*>{&wood, &iron, &stone}, initializer_list<int>{5, 10, 5}),
 
-    Recipe(&swordWood,initializer_list<Item*>{&wood}, initializer_list<int>{15}),
-    Recipe(&swordStone,initializer_list<Item*>{&wood, &stone}, initializer_list<int>{5,5}),
-    Recipe(&swordIron,initializer_list<Item*>{&wood, &iron}, initializer_list<int>{5,5})};
+    new ItemRecipe(&swordWood,initializer_list<Item*>{&wood}, initializer_list<int>{15}),
+    new ItemRecipe(&swordStone,initializer_list<Item*>{&wood, &stone}, initializer_list<int>{5,5}),
+    new ItemRecipe(&swordIron,initializer_list<Item*>{&wood, &iron}, initializer_list<int>{5,5})};
 
 stack<unique_ptr<GameState> > states;
 
@@ -109,7 +109,7 @@ public:
         damagemap.setTileDirection(x, y, attack, d);
     }
 
-    void ai(Map<Colour>& colourmap, Map<int>& damagemap){
+    void ai(Map<Colour> colourmap, Map<int> damagemap){
         //Check if player is in range, then attack
         if((player.x == directionX(x, d) && player.y == y) || (player.y == directionY(y, d) && player.x==x)){
             atck(colourmap, damagemap);
@@ -157,28 +157,69 @@ public:
 unique_ptr<Monster> monsterIndex[MONSTERCOUNT] = {
     make_unique<Monster>("Earth Golem", 10,2, false)
 };
+class Building : public Recipe, public GameState{
+public:
+    Building(vector<Item*> i, vector<int> q) : Recipe(i, q){
+
+    }
+};
+
+class NullBuilding : public Building{
+
+};
+
+UniqueMap<Building> buildings[5] = {
+    UniqueMap<Building>(MAPSIZE, MAPSIZE),
+    UniqueMap<Building>(MAPSIZE, MAPSIZE),
+    UniqueMap<Building>(MAPSIZE, MAPSIZE),
+    UniqueMap<Building>(MAPSIZE, MAPSIZE),
+    UniqueMap<Building>(MAPSIZE, MAPSIZE)
+};
+
+
+
+class WoodHouse : public Building{
+    public:
+    WoodHouse() : Building(initializer_list<Item*>{&wood}, initializer_list<int>{50}){
+        debugout(ingredients[0]->name);
+        product = new Item("WoodHouse");
+    }
+    void addProduct(Player& c) override{
+        buildings[Z].setTile<WoodHouse>(X, Y);
+    }
+    void update() override{
+        player.health+=3;
+        states.pop();
+    }
+};
+
+vector<Recipe*> buildingRecipes{
+    new WoodHouse()
+};
 
 class CraftingMenu : public GameState{
 
-    vector<Recipe>& r;
+    vector<Recipe*>& r;
 public:
-    CraftingMenu(vector<Recipe>& d) : r(d){
+    CraftingMenu(vector<Recipe*>& d) : r(d){
     }
 
     void update() override{
         cls();
-        for(int i = 0; i < RECIPECOUNT; i++){
-            if(r[i].canCraft(player.getInventory())){
-                cout << i<< ": " << r[i].product->name<<endl;
+        for(int i = 0; i < r.size(); i++){
+            if(r[i]->canCraft(player.getInventory())){
+                cout << i<< ": " << r[i]->product->name<<endl;
                 sleep(100);
             }
         }
+        cout << "ABCD" << buildingRecipes.size();
+
         int in;
         cin >> in;
         states.pop();
-        if(r[in].canCraft(player.getInventory())){
-            r[in].addProduct(player);
-            r[in].removeItems(player.getInventory());
+        if(r[in]->canCraft(player.getInventory())){
+            r[in]->addProduct(player);
+            r[in]->removeItems(player.getInventory());
         }
     }
 };
@@ -207,13 +248,12 @@ public:
     }
     void update() override{
         cls();
-
         prmap();
         for(int y = 0; y<colours.getx(); y++){
             for(int x = 0; x<colours.gety(); x++){
                 if(*colours.getTile(x,y) == RED){
                     if(player.x == x && player.y == y){
-                        player.damage(*damages.getTile(x,y));
+                        player.damage(*damages.getTile(X,Y));
                     }else{
                         for(int i = 0; i < opponents.size(); i++){
                             if(opponents[i]->x == x && opponents[i]->y == y){
@@ -224,6 +264,8 @@ public:
                     colours.setTile(x,y,GREEN);
                 }
             }
+
+
         }
         cout << player.health<<"/"<<player.maxhealth<<endl;
         for(int i = 0; i < opponents.size(); i++){
@@ -307,7 +349,14 @@ private:
                 }else{
                     cout<<"__";
                 }
-            }cout<<endl;}
+            }
+            if(d_PRINTDAMAGEMAP){
+                cout<<"\t\t\t";
+                for(int x = 0; x<colours.gety(); x++){
+                    cout << *damages.getTile(x,y);
+                }
+            }
+            cout<<endl;}
             setColor(GREEN);
     }
 
@@ -419,6 +468,10 @@ class StatePlanet : public GameState{
         printTilesOfMap(&planets[player.z]);
         cout <<  planets[player.z].getTile(player.x, player.y)->getFlavour();
         cout <<endl;
+        if(buildings[Z].getTile(X,Y)){
+            cout << "There is a " << buildings[Z].getTile(X,Y)->product->name << " here";
+        }
+        cout <<endl;
         char action = getch();
         cls();
         if(action == 'a'){
@@ -453,6 +506,10 @@ class StatePlanet : public GameState{
             states.push(std::make_unique<CraftingMenu>(recipes));
         }else if(action == 'm'){
             states.push(std::make_unique<StateMine>(ac));
+        }else if(action == 'b'){
+            states.push(std::make_unique<CraftingMenu>(buildingRecipes));
+        }else if(action == 'f'){
+            states.push(unique_ptr<GameState>(buildings[Z].getTile(X,Y)));
         }
         if(ac <= 0){
             ac=10;
@@ -478,6 +535,9 @@ int main(){
         planets[i].~Map();
     }
 
+    remove("debug.out");
+    FILE* file_ptr = fopen("debug.out", "w");
+    fclose(file_ptr);
 
     return 0;
 }
