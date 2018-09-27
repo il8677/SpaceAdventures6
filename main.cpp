@@ -197,7 +197,7 @@ class WoodHouse : public Building{
     }
     void update() override{
         exitBuilding();
-        player.health+=3;
+        player.heal(3);
     }
 };
 
