@@ -161,6 +161,11 @@ unique_ptr<Monster> monsterIndex[MONSTERCOUNT] = {
     make_unique<Monster>("Fire Golem", 6,6,false)
 };
 class Building : public Recipe, public GameState{
+protected:
+    void exitBuilding(){
+        states.top().release();
+        states.pop();
+    }
 public:
     Building(vector<Item*> i, vector<int> q) : Recipe(i, q){
 
@@ -191,7 +196,7 @@ class WoodHouse : public Building{
         buildings[Z].setTile<WoodHouse>(X, Y);
     }
     void update() override{
-        states.pop();
+        exitBuilding();
         player.health+=3;
     }
 };
@@ -472,7 +477,7 @@ class MiningShaft : public Building{
         buildings[Z].setTile<MiningShaft>(X, Y);
     }
     void update() override{
-        states.pop();
+        exitBuilding();
         states.push(std::make_unique<StateMine>(ac,2));
     }
 };
