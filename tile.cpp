@@ -230,22 +230,22 @@ void generateTerrainOfMap(Map<> * themap){
     for(int i = 0; i<100;i++){
         for(int x = 0; x<themap->getx(); x++){
             for(int y = 0; y<themap->gety(); y++){
-                if(themap->getTileUp(x,y)->getStyle() == NULLTILE.getStyle()&&*generationMap.getTileUp(x,y) > *generationMap.getTile(x,y)) {
+                if(themap->getTileUp(x,y)->getStyle() == NULLTILE.getStyle() || *generationMap.getTileUp(x,y) > *generationMap.getTile(x,y)|| rand()%8 == 3) {
 
                     themap->setTileUp(x,y,*themap->getTile(x,y));
                     generationMap.setTileUp(x,y,*generationMap.getTile(x,y) + 1);
 
-                }else if (themap->getTileDown(x,y)->getStyle() == NULLTILE.getStyle() && *generationMap.getTileDown(x,y) > *generationMap.getTile(x,y)){
+                }else if (themap->getTileDown(x,y)->getStyle() == NULLTILE.getStyle() || *generationMap.getTileDown(x,y) > *generationMap.getTile(x,y)|| rand()%8 == 3){
 
                     themap->setTileDown(x,y, *themap->getTile(x,y));
                     generationMap.setTileDown(x,y, *generationMap.getTile(x,y)+1);
 
-                }else if (themap->getTileLeft(x,y)->getStyle() == NULLTILE.getStyle() && *generationMap.getTileLeft(x,y) > *generationMap.getTile(x,y)){
+                }else if (themap->getTileLeft(x,y)->getStyle() == NULLTILE.getStyle() || *generationMap.getTileLeft(x,y) > *generationMap.getTile(x,y)|| rand()%8 == 3){
 
                     themap->setTileLeft(x,y, *themap->getTile(x,y));
                     generationMap.setTileLeft(x,y, *generationMap.getTile(x,y)+1);
 
-                }else if (themap->getTileRight(x,y)->getStyle() == NULLTILE.getStyle() && *generationMap.getTileRight(x,y) > *generationMap.getTile(x,y)){
+                }else if (themap->getTileRight(x,y)->getStyle() == NULLTILE.getStyle() || *generationMap.getTileRight(x,y) > *generationMap.getTile(x,y)|| rand()%8 == 3){
                     themap->setTileRight(x,y, *themap->getTile(x,y));
                     generationMap.setTileRight(x,y, *generationMap.getTile(x,y)+1);
 

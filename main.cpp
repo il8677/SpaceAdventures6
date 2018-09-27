@@ -22,6 +22,9 @@ Player player;
 #define X player.x
 #define Y player.y
 
+
+int ac = 200;
+
 string directionGlyphs[4] = {"^",">","V","<"};
 char directionKeys[4] = {'w','d','s','a'};
 
@@ -188,14 +191,12 @@ class WoodHouse : public Building{
         buildings[Z].setTile<WoodHouse>(X, Y);
     }
     void update() override{
-        player.health+=3;
         states.pop();
+        player.health+=3;
     }
 };
 
-vector<Recipe*> buildingRecipes{
-    new WoodHouse()
-};
+
 
 class CraftingMenu : public GameState{
 
@@ -242,6 +243,8 @@ public:
 
         for(int i = 0; i < (player.kills + 1) + (floor(player.kills/10)); i++){
             opponents.push_back(make_unique<Monster>( (*(monsterIndex[rand()%MONSTERCOUNT]))) );
+            opponents[i].get()->x = 3;
+            opponents[i].get()->y = 3;
         }
     }
     void update() override{
@@ -309,6 +312,7 @@ public:
                 }
             }
             if(opponents[i]->health <= 0){
+                opponents[i].get()->health = opponents[i].get()->maxhealth;
                 opponents.erase(opponents.begin() + i);
             }
         }
@@ -375,7 +379,7 @@ public:
         setColor(GREEN);
     }
 
-    StateMine(int& a) : ac(a) {
+    StateMine(int& a, int probfactor = 1) : ac(a) {
         orig_x = player.x;//Since we will be modifying the position of the player,
         orig_y = player.y;//we want to store the previous position in order to reset
         player.x=0;
@@ -384,7 +388,7 @@ public:
         for(int y = 0; y<mine.gety(); y++){
             for(int x = 0; x<mine.getx(); x++){
                 int chance = rand()%10;
-                if(chance == 1){
+                if(chance <= probfactor){
                     int ore = rand()%MINEABLEORES;
                     mine.setTile(x,y,ore);
                 }
@@ -460,8 +464,25 @@ public:
         cls();
     }
 };
+
+class MiningShaft : public Building{
+    public:
+    MiningShaft() : Building(initializer_list<Item*>{&wood}, initializer_list<int>{30}){        product = new Item("MiningShaft");}
+    void addProduct(Player& c) override{
+        buildings[Z].setTile<MiningShaft>(X, Y);
+    }
+    void update() override{
+        states.pop();
+        states.push(std::make_unique<StateMine>(ac,2));
+    }
+};
+
+vector<Recipe*> buildingRecipes{
+    new WoodHouse(),
+    new MiningShaft()
+};
+
 class StatePlanet : public GameState{
-    int ac = 20;
     void update() override{
         printTilesOfMap(&planets[player.z]);
         cout <<  planets[player.z].getTile(player.x, player.y)->getFlavour();
@@ -507,7 +528,8 @@ class StatePlanet : public GameState{
         }else if(action == 'b'){
             states.push(std::make_unique<CraftingMenu>(buildingRecipes));
         }else if(action == 'f'){
-            states.push(unique_ptr<GameState>(buildings[Z].getTile(X,Y)));
+            if(buildings[Z].getTile(X,Y)){
+            states.emplace(buildings[Z].getTile(X,Y));}
         }
         if(ac <= 0){
             ac=10;
