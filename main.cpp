@@ -240,17 +240,21 @@ public:
         player.y = orig_y;
     }
 
-    StateNight() : colours(8,8, GREEN), damages(8,8,0){
+    StateNight(vector<int> mon = {}) : colours(8,8, GREEN), damages(8,8,0){
         orig_x = player.x;//Since we will be modifying the position of the player,
         orig_y = player.y;//we want to store the previous position in order to reset
         player.x = colours.getx() / 2;
         player.y = colours.gety() - 1;
-
+        if(mon.size() > 0){
+            for(int i = 0; i < mon.size(); i++){
+                opponents.push_back(make_unique<Monster> ( (*(monsterIndex[mon[i]]))));
+            }
+        }else{
         for(int i = 0; i < (player.kills + 1) + (floor(player.kills/10)); i++){
             opponents.push_back(make_unique<Monster>( (*(monsterIndex[rand()%MONSTERCOUNT]))) );
             opponents[i].get()->x = 3;
             opponents[i].get()->y = 3;
-        }
+        }}
     }
     void update() override{
         cls();
@@ -368,15 +372,38 @@ private:
     }
 
 };
+class StateCave : public GameState{
+public:
+    StateCave(){
+        cout << "You have fallen into a cave\n\nPress any key to continue...";
+        rlutil::anykey();
+    }
+    void update() override{
+        cls();
+        int event = rand()%10;
+        if(event < 3){
+            cout << "You have found a way out of the cave! Do you want to leave?\n1. Yes\n2. No\n";
+            int a;
+            cin >> a;
+            if(a == 1){
+                states.pop();
+            }
+        }else if(event < 4){
+            cout << "You have found the dragon"<<endl;
+        }
+    }
+};
 class StateMine : public GameState{
     int subactions = 0; // 10 subactions = 1 action
     int& ac;
     int orig_x, orig_y;
     //-2 = stone
     //-1 = air
+    //-3 = cave
     //>=0 = material index
     Direction playerDirection= UP;
-    Map<int> mine=Map<int>(20,20,-2);
+    Map<int> mine=Map<int>(10,10,-2);
+    int cavex,cavey;
 public:
     ~StateMine(){
         player.x = orig_x;
@@ -389,7 +416,8 @@ public:
         orig_y = player.y;//we want to store the previous position in order to reset
         player.x=0;
         player.y=0;
-
+        cavex = rand()%mine.getx();cavey=rand()%mine.gety();
+        mine.setTile(cavex, cavey, -3);
         for(int y = 0; y<mine.gety(); y++){
             for(int x = 0; x<mine.getx(); x++){
                 int chance = rand()%10;
@@ -420,7 +448,7 @@ public:
                 else if(*mine.getTile(x,y) == -1){
                     setColor(BLUE);
                     cout << " ";
-                }else if(*mine.getTile(x,y) == -2){
+                }else if(*mine.getTile(x,y) == -2 || *mine.getTile(x,y) == -3){
                     setColor(GREY);
                     cout << "S";
                 }else{
@@ -434,19 +462,23 @@ public:
         char action = getch();
         if(action == 'a'){
             if(*mine.getTileLeft(player.x,player.y) == -1){
-            player.left();}
+            player.left();}else if (*mine.getTileLeft(player.x,player.y) == -3){
+                states.push(std::make_unique<StateCave>());}
             playerDirection = LEFT;
         }else if(action == 'd'){
             if(*mine.getTileRight (player.x,player.y)== -1){
-            player.right();}
+            player.right();}else if (*mine.getTileRight(player.x,player.y) == -3){
+                states.push(std::make_unique<StateCave>());}
             playerDirection = RIGHT;
         }else if(action=='w'){
             if(*mine.getTileUp(player.x,player.y) == -1){
-            player.up();}
+            player.up();}else if (*mine.getTileUp(player.x,player.y) == -3){
+                states.push(std::make_unique<StateCave>());}
             playerDirection = UP;
         }else if (action=='s'){
             if(*mine.getTileDown(player.x,player.y) == -1){
-            player.down();}
+            player.down();}else if (*mine.getTileDown(player.x,player.y) == -3){
+                states.push(std::make_unique<StateCave>());}
             playerDirection = DOWN;
         }else if (action=='q'){
             states.pop();
