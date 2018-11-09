@@ -121,6 +121,10 @@ public:
         return returnItem;
     }
 
+    Item * takeItem(Item * item, int q = 100){
+        takeItem(item->name, q);
+    }
+
     void addItem(Item* item, int q){
 
         int itemIndex = 10000;
