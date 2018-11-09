@@ -23,15 +23,19 @@ Player player;
 #define Y player.y
 
 
-int ac = 200;
+int ac = 20;
 
 string directionGlyphs[4] = {"^",">","V","<"};
 char directionKeys[4] = {'w','d','s','a'};
+
+string planetNames[5] = {"Earth", "Vodithea", "Nichi 9E8", "Pueturn", "Droenus"};
 
 //item definition
 Item iron("Iron", IRON);
 Item stone("Stone");
 Item wood("Wood");
+Item gold("Gold", GOLD);
+Item arkhidite("Arkhidite", ARKHIDITE);
 
 //name attack damage woodspeed durability (5+woodspeed*2)
 Item axeWood("Wood Axe", 2,2,10);
@@ -66,9 +70,11 @@ vector<Recipe*> recipes = {
 
 stack<unique_ptr<GameState> > states;
 
-#define MINEABLEORES 1
+#define MINEABLEORES 3
 Item * mineables[MINEABLEORES] = {
-    &iron
+    &iron,
+    &gold,
+    &arkhidite
 };
 
 Map<> planets[5] = {
@@ -184,8 +190,6 @@ UniqueMap<Building> buildings[5] = {
     UniqueMap<Building>(MAPSIZE, MAPSIZE)
 };
 
-
-
 class WoodHouse : public Building{
     public:
     WoodHouse() : Building(initializer_list<Item*>{&wood}, initializer_list<int>{50}){
@@ -200,7 +204,6 @@ class WoodHouse : public Building{
         player.heal(3);
     }
 };
-
 
 
 class CraftingMenu : public GameState{
@@ -376,7 +379,7 @@ class StateMine : public GameState{
     //-1 = air
     //>=0 = material index
     Direction playerDirection= UP;
-    Map<int> mine=Map<int>(20,20,-2);
+    Map<int> mine;
 public:
     ~StateMine(){
         player.x = orig_x;
@@ -384,7 +387,7 @@ public:
         setColor(GREEN);
     }
 
-    StateMine(int& a, int probfactor = 1) : ac(a) {
+    StateMine(int& a, int depth = 1,int probfactor = 1, int defa = -2 ) : ac(a), mine(20,20,defa) {
         orig_x = player.x;//Since we will be modifying the position of the player,
         orig_y = player.y;//we want to store the previous position in order to reset
         player.x=0;
@@ -394,7 +397,8 @@ public:
             for(int x = 0; x<mine.getx(); x++){
                 int chance = rand()%10;
                 if(chance <= probfactor){
-                    int ore = rand()%MINEABLEORES;
+                    int ore;
+                    ore = rand()%depth;
                     mine.setTile(x,y,ore);
                 }
             }
@@ -478,13 +482,51 @@ class MiningShaft : public Building{
     }
     void update() override{
         exitBuilding();
-        states.push(std::make_unique<StateMine>(ac,2));
+        states.push(std::make_unique<StateMine>(ac,2,2));
     }
 };
+class LaunchPad : public Building{
+    public:
+    LaunchPad() : Building(initializer_list<Item*>{&iron}, initializer_list<int>{20}){        product = new Item("LaunchPad");}
+    void addProduct(Player& c) override{
+        buildings[Z].setTile<LaunchPad>(X, Y);
+    }
 
+    void update() override{
+        char c;
+        while(c != 'q'){
+            cls();
+            cout << "You are in space... you see the wonder of the universe\n1. Go to planet\n2. Send out mining probe (5 iron)\n3. Land\n";
+            c = getch();
+            if(c == '1'){
+                int p;
+                cout << "1. " << planetNames[1]<<endl;
+                cout << "2. " << planetNames[2]<<endl;
+                cout << "3. " << planetNames[3]<<endl;
+                cout << "4. " << planetNames[4]<<endl;
+                cout << "5. " << planetNames[5]<<endl;
+                p = (int)getch();
+
+                Z = p;
+            }else if(c=='2'){
+                if(player.getInventory()->hasEnoughItem(&iron, 5)){
+                    player.getInventory()->takeItem(&iron, 5);
+                    states.push(std::make_unique<StateMine>(ac, 3, 1, -1));
+                }else{
+                    cout << "You do not have enough iron!\n";
+                    sleep(500);
+                    cls();
+                }
+            }else if(c=='3'){
+                exitBuilding();
+            }
+        }
+    }
+};
 vector<Recipe*> buildingRecipes{
     new WoodHouse(),
-    new MiningShaft()
+    new MiningShaft(),
+    new LaunchPad()
 };
 
 class StatePlanet : public GameState{
